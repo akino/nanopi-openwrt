@@ -2,13 +2,13 @@ name: r2s Lean版openwrt minimal fix
 
 on:
   push:
-    branches: [ master ]
+    branches: [ dev ]
     paths:
       - '.github/workflows/r2s_lean_minimal_fix.yml'
   # schedule:
     # - cron: '40 06 * * *'
   workflow_dispatch:
-    ref: refs/heads/master
+    ref: refs/heads/dev
 
 jobs:
 
@@ -20,9 +20,9 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@main
         with:
-          ref: master
+          ref: dev
 
       - name: Initialization Environment
         env:
@@ -30,8 +30,8 @@ jobs:
         run: . 1_initialization_environment.sh
 
       - name: Clone Source
-        # run: . 2_clone_source_fix.sh master-v19.07.5 rk3328
-        run: . 2_clone_source.sh master-v19.07.5 rk3328
+        run: . 2_clone_source_fix.sh master-v19.07.5 rk3328
+        # run: . 2_clone_source.sh master-v19.07.5 rk3328
 
       - name: Patch Kernel
         run: . patch_kernel_5.4.sh
@@ -81,7 +81,7 @@ jobs:
           tag_name: ${{ steps.assemble_artifact.outputs.release_tag }}
           release_name: 自动发布 ${{ steps.assemble_artifact.outputs.release_tag }}
           draft: false
-          prerelease: false
+          prerelease: true
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
