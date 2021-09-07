@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e $1
 
 opkg update || true
@@ -12,33 +12,32 @@ proceed_command sfdisk
 proceed_command losetup
 proceed_command resize2fs
 opkg install coreutils-truncate || true
-wget -P /tmp https://ghproxy.com/https://raw.githubusercontent.com/biliwala/nanopi-openwrt/zstd-bin/truncate
-wget -P /tmp https://ghproxy.com/https://raw.githubusercontent.com/biliwala/nanopi-openwrt/zstd-bin/ddnz
+wget -P /tmp https://ghproxy.com/https://raw.githubusercontent.com/klever1988/nanopi-openwrt/zstd-bin/truncate
+wget -P /tmp https://ghproxy.com/https://raw.githubusercontent.com/klever1988/nanopi-openwrt/zstd-bin/ddnz
 chmod +x /tmp/truncate /tmp/ddnz
 
 board_id=$(cat /etc/board.json | jsonfilter -e '@["model"].id' | sed 's/friendly.*,nanopi-//;s/xunlong,orangepi-//;s/^r1s-h5$/r1s/;s/^r1$/r1s-h3/;s/^r1-plus$/r1p/')
 mount -t tmpfs -o remount,size=850m tmpfs /tmp
 rm -rf /tmp/upg && mkdir /tmp/upg && cd /tmp/upg
-set +e
-wget https://ghproxy.com/https://github.com/biliwala/nanopi-openwrt/releases/download/$(date +%Y-%m-%d)/$board_id$ver.img.gz -O- | gzip -dc > $board_id.img
-if [ $? -eq 0 ]; then
-	wget https://ghproxy.com/https://github.com/biliwala/nanopi-openwrt/releases/download/$(date +%Y-%m-%d)/$board_id$ver.img.md5 -O md5sum.txt
+
+md5sum=`wget https://ghproxy.com/https://github.com/klever1988/nanopi-openwrt/releases/download/$(date +%Y-%m-%d)/$board_id$ver.img.gz -O- | tee >(gzip -dc>$board_id.img) | md5sum | awk '{print $1}'`
+if [ "$md5sum" != "d41d8cd98f00b204e9800998ecf8427e" ]; then
+	wget https://ghproxy.com/https://github.com/klever1988/nanopi-openwrt/releases/download/$(date +%Y-%m-%d)/$board_id$ver.img.gz.md5 -O md5sum.txt
 	echo -e '\e[92m今天固件已下载，准备解压\e[0m'
 else
 	echo -e '\e[91m今天的固件还没更新，尝试下载昨天的固件\e[0m'
-	wget https://ghproxy.com/https://github.com/biliwala/nanopi-openwrt/releases/download/$(date -d "@$(( $(busybox date +%s) - 86400))" +%Y-%m-%d)/$board_id$ver.img.gz -O- | gzip -dc > $board_id.img
-	if [ $? -eq 0 ]; then
-		wget https://ghproxy.com/https://github.com/biliwala/nanopi-openwrt/releases/download/$(date -d "@$(( $(busybox date +%s) - 86400))" +%Y-%m-%d)/$board_id$ver.img.md5 -O md5sum.txt
+	md5sum=`wget https://ghproxy.com/https://github.com/klever1988/nanopi-openwrt/releases/download/$(date -d "@$(( $(busybox date +%s) - 86400))" +%Y-%m-%d)/$board_id$ver.img.gz -O- | tee >(gzip -dc>$board_id.img) | md5sum | awk '{print $1}'`
+	if [ "$md5sum" != "d41d8cd98f00b204e9800998ecf8427e" ]; then
+		wget https://ghproxy.com/https://github.com/klever1988/nanopi-openwrt/releases/download/$(date -d "@$(( $(busybox date +%s) - 86400))" +%Y-%m-%d)/$board_id$ver.img.gz.md5 -O md5sum.txt
 		echo -e '\e[92m昨天的固件已下载，准备解压\e[0m'
 	else
 		echo -e '\e[91m没找到最新的固件，脚本退出\e[0m'
 		exit 1
 	fi
 fi
-set -e
 
-sed -i 's/-slim//;s/-with-docker//' md5sum.txt
-if [ `md5sum -c md5sum.txt|grep -c "OK"` -eq 0 ]; then
+md5r=`awk '{print $1}' md5sum.txt`
+if [ $md5r != $md5sum ]; then
 	echo -e '\e[91m固件HASH值匹配失败，脚本退出\e[0m'
 	exit 1
 fi
@@ -80,7 +79,7 @@ if [ -f FriendlyWrt.img ]; then
 	echo 1 > /proc/sys/kernel/sysrq
 	echo u > /proc/sysrq-trigger && umount / || true
 	#pv FriendlyWrt.img | dd of=/dev/mmcblk0 conv=fsync
-	../ddnz FriendlyWrt.img /dev/mmcblk0
+	dd if=FriendlyWrt.img of=/dev/mmcblk0 conv=sparse status=progress
 	echo -e '\e[92m刷机完毕，正在重启...\e[0m'
 	echo b > /proc/sysrq-trigger
 fi
