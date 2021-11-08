@@ -27,7 +27,8 @@ rm -rf v2ray/ && mkdir v2ray && cd v2ray && wget https://github.com/coolsnowwolf
 rm -rf v2ray-plugin/ && mkdir v2ray-plugin && cd v2ray-plugin && wget https://github.com/coolsnowwolf/lede/raw/763081f891c89f86fa6de0defdbfe359fb3aec92/package/lean/v2ray-plugin/Makefile && cd ..
 rm -rf luci-app-ssr-plus/ && svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus
 rm -rf shadowsocksr-libev/ && svn co https://github.com/fw876/helloworld/trunk/shadowsocksr-libev
-rm -rf trojan/ && svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan
+rm -rf simple-obfs/ && svn export https://github.com/fw876/helloworld/trunk/simple-obfs
+rm -rf trojan/ && svn export https://github.com/fw876/helloworld/trunk/trojan
 rm -rf autocore/ && svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/autocore
 rm -rf luci-app-unblockmusic/ && svn export -r3322 https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-unblockmusic
 svn co https://github.com/songchenwen/nanopi-r2s/trunk/luci-app-r2sflasher
