@@ -17,7 +17,7 @@ jobs:
 
   build_packages:
     name: Build ${{ github.event.client_payload.device || github.event.inputs.device }} packages
-    runs-on: ubuntu-18.04
+    runs-on: self-hosted # ubuntu-18.04
     env:
       DEVICE: ${{ github.event.client_payload.device || github.event.inputs.device }}
       BRANCH: ${{ github.event.client_payload.branch || github.event.inputs.branch }}
@@ -147,7 +147,9 @@ jobs:
           cd
           sleep 60
           sudo mount -o remount,compress=no,nodatacow,nodatasum lede
-          cd lede/; pv /dev/zero > zerospace || true; sync; rm -f zerospace; cd -
+          cd lede/
+          pv /dev/zero > zerospace || true
+          sync && rm -f zerospace && cd -
           sleep 60
           sudo umount lede
           sudo losetup -d $LOOP_DEVICE
@@ -181,7 +183,7 @@ jobs:
 
       - name: Debug via tmate
         uses: P3TERX/ssh2actions@main
-        if: 0 #${{ failure() && env.TG }}
+        if: false #${{ failure() && env.TG }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
